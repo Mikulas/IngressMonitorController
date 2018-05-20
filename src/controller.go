@@ -164,32 +164,20 @@ func (c *MonitorController) getMonitorURL(ingress *v1beta1.Ingress) string {
 }
 
 func (c *MonitorController) handleIngressOnCreationOrUpdation(ingress *v1beta1.Ingress) {
-	//monitorName := c.getMonitorName(ingress.GetName(), ingress.Namespace)
-	monitorURL := c.getMonitorURL(ingress)
-
-	monitorName := ingress.Namespace
-	monitorURLObj, _ := url.Parse(monitorURL)
-	if monitorURLObj.Path != "" {
-		monitorName = fmt.Sprintf("%s %s", ingress.Namespace, monitorURLObj.Path)
-	}
-
-	log.Println("Monitor Name: " + monitorName)
-	log.Println("Monitor URL: " + monitorURL)
-
 	annotations := ingress.GetAnnotations()
+	if value, ok := annotations[monitorEnabledAnnotation]; ok && value == "true" {
+		monitorURL := c.getMonitorURL(ingress)
 
-	if value, ok := annotations[monitorEnabledAnnotation]; ok {
-		if value == "true" {
-			// Annotation exists and is enabled
-			c.createOrUpdateMonitors(monitorName, monitorURL)
-		} else {
-			// Annotation exists but is disabled
-			c.removeMonitorsIfExist(monitorName)
+		monitorName := ingress.Namespace
+		monitorURLObj, _ := url.Parse(monitorURL)
+		if monitorURLObj.Path != "/" {
+			monitorName = fmt.Sprintf("%s %s", ingress.Namespace, monitorURLObj.Path)
 		}
 
-	} else {
-		c.removeMonitorsIfExist(monitorName)
-		log.Println("Not doing anything with this ingress because no annotation exists with name: " + monitorEnabledAnnotation)
+		log.Println("Monitor Name: " + monitorName)
+		log.Println("Monitor URL: " + monitorURL)
+
+		c.createOrUpdateMonitors(monitorName, monitorURL)
 	}
 }
 
