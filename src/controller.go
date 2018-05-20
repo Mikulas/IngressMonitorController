@@ -138,7 +138,7 @@ func (c *MonitorController) handleIngressOnDeletion(key string) {
 		// Delete the monitor if it exists
 		// key is in the format "namespace/ingressname"
 		splitted := strings.Split(key, "/")
-		monitorName := c.getMonitorName(splitted[1], c.namespace)
+		monitorName := c.getMonitorName(splitted[1], c.namespace) // TODO fix ns
 
 		c.removeMonitorsIfExist(monitorName)
 	}
@@ -155,7 +155,7 @@ func (c *MonitorController) getMonitorName(ingressName string, namespace string)
 func (c *MonitorController) getMonitorURL(ingress *v1beta1.Ingress) string {
 	ingressWrapper := IngressWrapper{
 		ingress:   ingress,
-		namespace: c.namespace,
+		namespace: ingress.Namespace,
 		clientset: c.clientset,
 	}
 
