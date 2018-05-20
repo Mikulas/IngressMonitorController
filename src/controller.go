@@ -17,6 +17,7 @@ import (
 )
 
 const monitorEnabledAnnotation = "monitor.stakater.com/enabled"
+const monitorIntervalAnnotation = "monitor.stakater.com/interval"
 const monitorHealthAnnotation = "monitor.stakater.com/healthEndpoint" // "/health"
 
 // MonitorController which can be used for monitoring ingresses
@@ -177,7 +178,17 @@ func (c *MonitorController) handleIngressOnCreationOrUpdation(ingress *v1beta1.I
 		log.Println("Monitor Name: " + monitorName)
 		log.Println("Monitor URL: " + monitorURL)
 
-		c.createOrUpdateMonitors(monitorName, monitorURL)
+		intervalStr, ok := annotations[monitorIntervalAnnotation]
+		if !ok {
+			intervalStr = "5m"
+		}
+		interval, err := time.ParseDuration(intervalStr)
+		if err != nil {
+			log.Println(err)
+			interval = 5 * time.Minute
+		}
+
+		c.createOrUpdateMonitors(monitorName, monitorURL, interval)
 	}
 }
 
@@ -197,14 +208,14 @@ func (c *MonitorController) removeMonitorIfExists(monitorService MonitorServiceP
 	}
 }
 
-func (c *MonitorController) createOrUpdateMonitors(monitorName string, monitorURL string) {
+func (c *MonitorController) createOrUpdateMonitors(monitorName string, monitorURL string, interval time.Duration) {
 	for index := 0; index < len(c.monitorServices); index++ {
 		monitorService := c.monitorServices[index]
-		c.createOrUpdateMonitor(monitorService, monitorName, monitorURL)
+		c.createOrUpdateMonitor(monitorService, monitorName, monitorURL, interval)
 	}
 }
 
-func (c *MonitorController) createOrUpdateMonitor(monitorService MonitorServiceProxy, monitorName string, monitorURL string) {
+func (c *MonitorController) createOrUpdateMonitor(monitorService MonitorServiceProxy, monitorName string, monitorURL string, interval time.Duration) {
 	m, _ := monitorService.GetByName(monitorName)
 
 	if m != nil { // Monitor Already Exists
@@ -212,11 +223,12 @@ func (c *MonitorController) createOrUpdateMonitor(monitorService MonitorServiceP
 		if m.url != monitorURL { // Monitor does not have the same url
 			// update the monitor with the new url
 			m.url = monitorURL
+			m.interval = interval
 			monitorService.Update(*m)
 		}
 	} else {
 		// Create a new monitor for this ingress
-		m := Monitor{name: monitorName, url: monitorURL}
+		m := Monitor{name: monitorName, url: monitorURL, interval: interval}
 		monitorService.Add(m)
 	}
 }

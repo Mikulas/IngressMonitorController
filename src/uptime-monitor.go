@@ -5,6 +5,8 @@ import (
 	"errors"
 	"log"
 	"net/url"
+	"time"
+	"fmt"
 )
 
 type UpTimeMonitorService struct {
@@ -81,7 +83,8 @@ func (monitor *UpTimeMonitorService) Add(m Monitor) {
 
 	client := createHttpClient(monitor.url + action)
 
-	body := "api_key=" + monitor.apiKey + "&format=json&type=1&url=" + url.QueryEscape(m.url) + "&friendly_name=" + url.QueryEscape(m.name) + "&alert_contacts=" + monitor.alertContacts
+	interval := fmt.Sprintf("%v", int(m.interval.Truncate(time.Second).Seconds()))
+	body := "api_key=" + monitor.apiKey + "&format=json&type=1&url=" + url.QueryEscape(m.url) + "&interval=" + interval + "&friendly_name=" + url.QueryEscape(m.name) + "&alert_contacts=" + monitor.alertContacts
 
 	response, err := client.postUrlEncodedFormBody(body)
 	if err != nil {
@@ -112,7 +115,8 @@ func (monitor *UpTimeMonitorService) Update(m Monitor) {
 
 	client := createHttpClient(monitor.url + action)
 
-	body := "api_key=" + monitor.apiKey + "&format=json&id=" + m.id + "&friendly_name=" + m.name + "&url=" + m.url
+	interval := fmt.Sprintf("%v", int(m.interval.Truncate(time.Second).Seconds()))
+	body := "api_key=" + monitor.apiKey + "&format=json&id=" + m.id + "&friendly_name=" + url.QueryEscape(m.name)+ "&interval=" + interval + "&url=" + url.QueryEscape(m.url)
 
 	response, err := client.postUrlEncodedFormBody(body)
 	if err != nil {
