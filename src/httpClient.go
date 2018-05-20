@@ -20,29 +20,38 @@ func createHttpClient(url string) *HttpClient {
 	return &client
 }
 
-func (client *HttpClient) post(body string) HttpResponse {
+func (client *HttpClient) post(body string) (*HttpResponse, error) {
 	return client.postWithHeaders(body, nil)
 }
 
-func (client *HttpClient) postWithHeaders(body string, headers map[string]string) HttpResponse {
+func (client *HttpClient) postWithHeaders(body string, headers map[string]string) (*HttpResponse, error) {
 	payload := strings.NewReader(body)
 
-	request, _ := http.NewRequest("POST", client.url, payload)
+	request, err := http.NewRequest("POST", client.url, payload)
+	if err != nil {
+		return nil, err
+	}
 
 	client.addHeaders(request, headers)
 
-	response, _ := http.DefaultClient.Do(request)
+	response, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
 
-	httpResponse := HttpResponse{statusCode: response.StatusCode}
+	httpResponse := &HttpResponse{statusCode: response.StatusCode}
 
 	defer response.Body.Close()
-	responseBytes, _ := ioutil.ReadAll(response.Body)
+	responseBytes, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
 	httpResponse.bytes = responseBytes
 
-	return httpResponse
+	return httpResponse, err
 }
 
-func (client *HttpClient) postUrlEncodedFormBody(body string) HttpResponse {
+func (client *HttpClient) postUrlEncodedFormBody(body string) (*HttpResponse, error) {
 	requestHeaders := make(map[string]string)
 	requestHeaders["content-type"] = "application/x-www-form-urlencoded"
 	requestHeaders["cache-control"] = "no-cache"

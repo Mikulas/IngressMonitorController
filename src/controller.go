@@ -13,6 +13,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/util/workqueue"
+	"net/url"
 )
 
 const monitorEnabledAnnotation = "monitor.stakater.com/enabled"
@@ -163,8 +164,14 @@ func (c *MonitorController) getMonitorURL(ingress *v1beta1.Ingress) string {
 }
 
 func (c *MonitorController) handleIngressOnCreationOrUpdation(ingress *v1beta1.Ingress) {
-	monitorName := c.getMonitorName(ingress.GetName(), c.namespace)
+	//monitorName := c.getMonitorName(ingress.GetName(), ingress.Namespace)
 	monitorURL := c.getMonitorURL(ingress)
+
+	monitorName := ingress.Namespace
+	monitorURLObj, _ := url.Parse(monitorURL)
+	if monitorURLObj.Path != "" {
+		monitorName = fmt.Sprintf("%s %s", ingress.Namespace, monitorURLObj.Path)
+	}
 
 	log.Println("Monitor Name: " + monitorName)
 	log.Println("Monitor URL: " + monitorURL)

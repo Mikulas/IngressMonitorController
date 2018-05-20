@@ -26,7 +26,10 @@ func (monitor *UpTimeMonitorService) GetByName(name string) (*Monitor, error) {
 
 	body := "api_key=" + monitor.apiKey + "&format=json&logs=1" + "&search=" + name
 
-	response := client.postUrlEncodedFormBody(body)
+	response, err := client.postUrlEncodedFormBody(body)
+	if err != nil {
+		return nil, err
+	}
 
 	if response.statusCode == 200 {
 
@@ -53,7 +56,11 @@ func (monitor *UpTimeMonitorService) GetAll() []Monitor {
 
 	body := "api_key=" + monitor.apiKey + "&format=json&logs=1"
 
-	response := client.postUrlEncodedFormBody(body)
+	response, err := client.postUrlEncodedFormBody(body)
+	if err != nil {
+		log.Println(err)
+		return nil
+	}
 
 	if response.statusCode == 200 {
 
@@ -76,7 +83,11 @@ func (monitor *UpTimeMonitorService) Add(m Monitor) {
 
 	body := "api_key=" + monitor.apiKey + "&format=json&type=1&url=" + url.QueryEscape(m.url) + "&friendly_name=" + url.QueryEscape(m.name) + "&alert_contacts=" + monitor.alertContacts
 
-	response := client.postUrlEncodedFormBody(body)
+	response, err := client.postUrlEncodedFormBody(body)
+	if err != nil {
+		log.Println("failed to add monitor: ", err)
+		return
+	}
 
 	if response.statusCode == 200 {
 		var f UptimeMonitorNewMonitorResponse
@@ -84,9 +95,12 @@ func (monitor *UpTimeMonitorService) Add(m Monitor) {
 
 		if f.Stat == "ok" {
 			log.Println("Monitor Added: " + m.name)
+			log.Println(string(response.bytes))
+
 		} else {
 			log.Println("Monitor couldn't be added: " + m.name)
 			log.Println(string(body))
+			log.Println(string(response.bytes))
 		}
 	} else {
 		log.Printf("AddMonitor Request failed. Status Code: " + string(response.statusCode))
@@ -100,7 +114,11 @@ func (monitor *UpTimeMonitorService) Update(m Monitor) {
 
 	body := "api_key=" + monitor.apiKey + "&format=json&id=" + m.id + "&friendly_name=" + m.name + "&url=" + m.url
 
-	response := client.postUrlEncodedFormBody(body)
+	response, err := client.postUrlEncodedFormBody(body)
+	if err != nil {
+		log.Println("failed to update monitor", err)
+		return
+	}
 
 	if response.statusCode == 200 {
 		var f UptimeMonitorStatusMonitorResponse
@@ -111,6 +129,7 @@ func (monitor *UpTimeMonitorService) Update(m Monitor) {
 		} else {
 			log.Println("Monitor couldn't be updated: " + m.name)
 			log.Println(string(body))
+			log.Println(string(response.bytes))
 		}
 	} else {
 		log.Println("UpdateMonitor Request failed. Status Code: " + string(response.statusCode))
@@ -124,7 +143,11 @@ func (monitor *UpTimeMonitorService) Remove(m Monitor) {
 
 	body := "api_key=" + monitor.apiKey + "&format=json&id=" + m.id
 
-	response := client.postUrlEncodedFormBody(body)
+	response, err := client.postUrlEncodedFormBody(body)
+	if err != nil {
+		log.Println("failde to remove monitor", err)
+		return
+	}
 
 	if response.statusCode == 200 {
 		var f UptimeMonitorStatusMonitorResponse
@@ -135,6 +158,7 @@ func (monitor *UpTimeMonitorService) Remove(m Monitor) {
 		} else {
 			log.Println("Monitor couldn't be removed: " + m.name)
 			log.Println(string(body))
+			log.Println(string(response.bytes))
 		}
 	} else {
 		log.Println("RemoveMonitor Request failed. Status Code: " + string(response.statusCode))
