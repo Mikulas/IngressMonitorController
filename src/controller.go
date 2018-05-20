@@ -18,6 +18,7 @@ import (
 
 const monitorEnabledAnnotation = "monitor.stakater.com/enabled"
 const monitorIntervalAnnotation = "monitor.stakater.com/interval"
+const monitorNameAnnotation = "monitor.stakater.com/name"
 const monitorHealthAnnotation = "monitor.stakater.com/healthEndpoint" // "/health"
 
 // MonitorController which can be used for monitoring ingresses
@@ -173,6 +174,10 @@ func (c *MonitorController) handleIngressOnCreationOrUpdation(ingress *v1beta1.I
 		monitorURLObj, _ := url.Parse(monitorURL)
 		if monitorURLObj.Path != "/" {
 			monitorName = fmt.Sprintf("%s %s", ingress.Namespace, monitorURLObj.Path)
+		}
+		nameAnnotation, ok := annotations[monitorNameAnnotation]
+		if ok {
+			monitorName = nameAnnotation
 		}
 
 		log.Println("Monitor Name: " + monitorName)
