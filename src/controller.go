@@ -219,13 +219,12 @@ func (c *MonitorController) createOrUpdateMonitor(monitorService MonitorServiceP
 	m, _ := monitorService.GetByName(monitorName)
 
 	if m != nil { // Monitor Already Exists
-		log.Println("Monitor already exists for ingress: " + monitorName)
-		if m.url != monitorURL { // Monitor does not have the same url
-			// update the monitor with the new url
-			m.url = monitorURL
-			m.interval = interval
-			monitorService.Update(*m)
-		}
+		log.Println("Monitor already exists for ingress: " + monitorName + ", updating")
+
+		// update the monitor with the new url
+		m.url = monitorURL
+		m.interval = interval
+		monitorService.Update(*m)
 	} else {
 		// Create a new monitor for this ingress
 		m := Monitor{name: monitorName, url: monitorURL, interval: interval}
