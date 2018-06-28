@@ -1,0 +1,28 @@
+package: github.com/stakater/IngressMonitorController
+import:
+- package: github.com/manGoweb/uptrends
+  subpackages:
+  - src
+- package: github.com/pkg/errors
+  version: ~0.8.0
+- package: gopkg.in/yaml.v2
+  version: ~2.2.1
+- package: k8s.io/api
+  version: kubernetes-1.8.0
+  subpackages:
+  - extensions/v1beta1
+- package: k8s.io/apimachinery
+  version: kubernetes-1.8.0
+  subpackages:
+  - pkg/apis/meta/v1
+  - pkg/fields
+  - pkg/labels
+  - pkg/util/runtime
+  - pkg/util/wait
+- package: k8s.io/client-go
+  version: 5.0.0
+  subpackages:
+  - kubernetes
+  - rest
+  - tools/cache
+  - util/workqueue
