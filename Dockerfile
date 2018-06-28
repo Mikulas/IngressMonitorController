@@ -7,6 +7,7 @@ RUN apk update && \
     curl https://glide.sh/get | sh
 
 ADD src /go/src/github.com/mangoweb/ingress-monitor
+ADD vendor /go/src/github.com/mangoweb/ingress-monitor/vendor
 RUN cd /go/src/github.com/mangoweb/ingress-monitor && \
     go build -o ingress-monitor
 
